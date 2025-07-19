@@ -1,0 +1,6 @@
+@FlowingLinks.Api_HostAddress = http://localhost:5225
+
+GET {{FlowingLinks.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
