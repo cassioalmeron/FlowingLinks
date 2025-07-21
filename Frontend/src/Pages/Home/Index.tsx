@@ -1,4 +1,3 @@
-import React from 'react'
 import { session } from '../../session';
 
 const Index = () => {

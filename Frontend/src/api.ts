@@ -5,6 +5,8 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Types
 export interface AuthResponse {
+    name: string;
+    isAdmin: boolean;
     token: string;
 }
 
@@ -43,11 +45,17 @@ export const api = {
         password
       });
 
-      const user = response.data;
+      const data = response.data;
+      
+      const user = {
+        name: data.name,
+        isAdmin: data.isAdmin,
+        token: data.token
+      };
 
       session.login(user);
 
-      return user;
+      return data;
     },
   },
   users: {
