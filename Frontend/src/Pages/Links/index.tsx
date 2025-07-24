@@ -17,6 +17,19 @@ const columns: GridColumn<Link>[] = [
   { header: 'Link', accessor: 'url' },
   { header: 'Comments', accessor: 'comments' },
   { header: 'Read', accessor: 'read' },
+  { 
+    header: 'Open', 
+    accessor: 'url',
+    render: (url) => (
+      <button 
+        className="link-open-btn"
+        onClick={() => window.open(url as string, '_blank')}
+        title="Open link in new tab"
+      >
+        🔗
+      </button>
+    )
+  },
 ];
 
 const Links: React.FC = () => {

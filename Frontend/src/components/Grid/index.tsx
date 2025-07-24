@@ -3,6 +3,7 @@ import React from 'react';
 export interface GridColumn<T> {
   header: string;
   accessor: keyof T;
+  render?: (value: T[keyof T], row: T) => React.ReactNode;
 }
 
 interface GridProps<T> {
@@ -26,7 +27,12 @@ function Grid<T extends { id: number | string }>({ columns, data, renderActions 
         {data.map(row => (
           <tr key={row.id}>
             {columns.map(col => (
-              <td key={col.accessor as string}>{String(row[col.accessor])}</td>
+              <td key={col.accessor as string}>
+                {col.render 
+                  ? col.render(row[col.accessor], row)
+                  : String(row[col.accessor])
+                }
+              </td>
             ))}
             {renderActions && (
               <td className="common-actions-cell">{renderActions(row)}</td>
