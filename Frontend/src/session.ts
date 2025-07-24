@@ -25,7 +25,6 @@ export const session = {
         localStorage.removeItem(USER_KEY);
     },
     login: (user: User) => {
-        debugger;
         localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
 }

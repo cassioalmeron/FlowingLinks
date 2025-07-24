@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from './Pages/Home/Index';
@@ -16,28 +16,13 @@ import Links from './Pages/Links';
 
 // Component to conditionally render layout
 const AppLayout = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const isLoginPage = location.pathname === '/login';
   const user = session.getUser();
 
   const handleLogout = () => {
-    debugger;
     session.logout();
     navigate('/login');
   };
-
-  if (isLoginPage) {
-    return (
-      <div className="login-layout">
-        <Routes>
-          <Route element={<RedirectIfAuth />}>
-            <Route path="/login" element={<Login />} />
-          </Route>
-        </Routes>
-      </div>
-    );
-  }
 
   return (
     <div className="app-layout">
@@ -79,7 +64,17 @@ const AppLayout = () => {
 function App() {
   return (
     <Router>
-      <AppLayout />
+      <Routes>
+        {/* Login route with RedirectIfAuth */}
+        <Route element={<RedirectIfAuth />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
+        
+        {/* Protected routes with RequireAuth */}
+        <Route element={<RequireAuth />}>
+          <Route path="/*" element={<AppLayout />} />
+        </Route>
+      </Routes>
       <ToastContainer />
     </Router>
   );
