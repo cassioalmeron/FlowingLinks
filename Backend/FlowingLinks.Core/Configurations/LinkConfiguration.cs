@@ -22,5 +22,10 @@ internal class LinkConfiguration : ConfigurationBase<Link>
             .WithMany()
             .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+            
+        // Configure Favorite field
+        builder.Property(l => l.Favorite)
+            .IsRequired()
+            .HasDefaultValue(false);
     }
 }

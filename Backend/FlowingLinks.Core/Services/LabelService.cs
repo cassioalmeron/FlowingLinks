@@ -10,9 +10,10 @@ namespace FlowingLinks.Core.Services
         private readonly FlowingLinksDbContext _dbContext;
         public LabelService(FlowingLinksDbContext dbContext) => _dbContext = dbContext;
 
-        public async Task<IEnumerable<Label>> GetAll()
+        public async Task<IEnumerable<LabelDto>> GetAll()
         {
-            return await _dbContext.Set<Label>().ToListAsync();
+            var labels = await _dbContext.Set<Label>().ToListAsync();
+            return labels.Select(label => label.CopyTo<LabelDto>());
         }
 
         public async Task<LabelDto> GetById(int id)

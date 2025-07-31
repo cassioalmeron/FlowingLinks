@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import * as yup from 'yup';
 import '../../styles/Common.css';
 import './LinkModalStyles.css';
+import TagSelector from '../../components/TagSelector';
 import type { Link } from './types';
 
 interface LinkModalProps {
@@ -57,6 +58,10 @@ const LinkModal: React.FC<LinkModalProps> = ({ open, link, loading, editingId, o
     }
   };
 
+  const handleTagsChange = (tagIds: number[]) => {
+    onChange({ ...link, tags: tagIds });
+  };
+
   return (
     <div className="common-modal-backdrop">
       <div className="common-modal">
@@ -83,6 +88,11 @@ const LinkModal: React.FC<LinkModalProps> = ({ open, link, loading, editingId, o
             />
             {errors.url && <div className="login-error">{errors.url}</div>}
           </label>
+          <TagSelector
+            selectedTags={link.tags || []}
+            onTagsChange={handleTagsChange}
+            disabled={loading}
+          />
           <label>
             Comments:
             <textarea

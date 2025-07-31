@@ -14,16 +14,6 @@ namespace FlowingLinks.Core.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Link>> GetAll(int userId)
-        {
-            return await _dbContext.Set<Link>()
-                .Include(l => l.User)
-                .Include(l => l.LinkLabels)
-                    .ThenInclude(ll => ll.Label)
-                .Where(l => l.UserId == userId)
-                .ToListAsync();
-        }
-
         public async Task<Link?> GetById(int id, int userId)
         {
             return await _dbContext.Set<Link>()
@@ -33,14 +23,20 @@ namespace FlowingLinks.Core.Services
                 .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
         }
 
-        public async Task<IEnumerable<Link>> GetByUserId(int userId)
+        public async Task<IEnumerable<LinkDto>> GetByUserId(int userId)
         {
-            return await _dbContext.Set<Link>()
+            var link = await _dbContext.Set<Link>()
                 .Include(l => l.User)
                 .Include(l => l.LinkLabels)
-                    .ThenInclude(ll => ll.Label)
+                .ThenInclude(ll => ll.Label)
                 .Where(l => l.UserId == userId)
                 .ToListAsync();
+            return link.Select(x =>
+            {
+                var dto = x.CopyTo<LinkDto>();
+                dto.Tags.AddRange(x.LinkLabels.Select(l => l.LabelId));
+                return dto;
+            });
         }
 
         public async Task Save(LinkDto linkDto, int userId)
@@ -59,7 +55,7 @@ namespace FlowingLinks.Core.Services
                 linkDto.Id = link.Id;
                 
                 // Add label relationships
-                await AddLinkLabels(link.Id, linkDto.LabelIds);
+                await AddLinkLabels(link.Id, linkDto.Tags);
             }
             else
             {
@@ -72,7 +68,7 @@ namespace FlowingLinks.Core.Services
                 await _dbContext.SaveChangesAsync();
                 
                 // Update label relationships
-                await UpdateLinkLabels(link.Id, linkDto.LabelIds);
+                await UpdateLinkLabels(link.Id, linkDto.Tags);
             }
         }
 
@@ -97,6 +93,19 @@ namespace FlowingLinks.Core.Services
         public async Task<bool> LinkExists(int id, int userId)
         {
             return await _dbContext.Set<Link>().AnyAsync(l => l.Id == id && l.UserId == userId);
+        }
+
+        public async Task<bool> UpdateFavorite(int id, int userId, bool favorite)
+        {
+            var link = await _dbContext.Set<Link>()
+                .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
+            
+            if (link == null)
+                return false;
+            
+            link.Favorite = favorite;
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         private async Task AddLinkLabels(int linkId, List<int> labelIds)

@@ -9,31 +9,16 @@ import DeleteButton from '../../components/DeleteButton';
 import type { GridColumn } from '../../components/Grid';
 import type { Link } from './types';
 
-const emptyLink: Link = { id: 0, description: '', url: '', comments: '', read: false };
+const emptyLink: Link = { id: 0, description: '', url: '', comments: '', read: false, tags: [], favorite: false };
 
-const columns: GridColumn<Link>[] = [
-  { header: 'Id', accessor: 'id' },
-  { header: 'Description', accessor: 'description' },
-  { header: 'Link', accessor: 'url' },
-  { header: 'Comments', accessor: 'comments' },
-  { header: 'Read', accessor: 'read' },
-  { 
-    header: 'Open', 
-    accessor: 'url',
-    render: (url) => (
-      <button 
-        className="link-open-btn"
-        onClick={() => window.open(url as string, '_blank')}
-        title="Open link in new tab"
-      >
-        🔗
-      </button>
-    )
-  },
-];
+interface Tag {
+  id: number;
+  name: string;
+}
 
 const Links: React.FC = () => {
   const [links, setLinks] = useState<Link[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLink, setModalLink] = useState<Link>(emptyLink);
@@ -42,18 +27,79 @@ const Links: React.FC = () => {
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchLinks = async () => {
+    const fetchData = async () => {
       try {
-        const data = await api.links.list();
-        setLinks(data);
+        const [linksData, tagsData] = await Promise.all([
+          api.links.list(),
+          api.labels.list()
+        ]);
+        setLinks(linksData);
+        setTags(tagsData);
       } catch {
-        toast.error('Failed to fetch links');
+        toast.error('Failed to fetch data');
       } finally {
         setLoading(false);
       }
     };
-    fetchLinks();
+    fetchData();
   }, []);
+
+  const columns: GridColumn<Link>[] = [
+    { header: 'Id', accessor: 'id' },
+    { header: 'Description', accessor: 'description' },
+    { header: 'Link', accessor: 'url' },
+    
+    { header: 'Comments', accessor: 'comments' },
+    { 
+      header: 'Favorite', 
+      accessor: 'favorite',
+      render: (favorite, link) => (
+        <button 
+          className={`favorite-btn ${favorite ? 'favorited' : ''}`}
+          onClick={() => handleToggleFavorite(link)}
+          title={favorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          ⭐
+        </button>
+      )
+    },
+    { header: 'Read', accessor: 'read' },
+    { 
+      header: 'Tags', 
+      accessor: 'tags',
+      render: (linkTags) => {
+        if (!linkTags || (linkTags as number[]).length === 0) return '-';
+        return (
+          <div className="link-tags">
+            {(linkTags as number[]).map(tagId => {
+              const tag = tags.find((t: Tag) => t.id === tagId);
+              return tag ? (
+                <span
+                  key={tagId}
+                  className="link-tag"
+                >
+                  {tag.name}
+                </span>
+              ) : null;
+            })}
+          </div>
+        );
+      }
+    },
+    { 
+      header: 'Open', 
+      accessor: 'url',
+      render: (url) => (
+        <button 
+          className="link-open-btn"
+          onClick={() => window.open(url as string, '_blank')}
+          title="Open link in new tab"
+        >
+          🔗
+        </button>
+      )
+    },
+  ];
 
   const openNewModal = () => {
     setModalLink({ ...emptyLink });
@@ -73,6 +119,16 @@ const Links: React.FC = () => {
     setEditingId(null);
   };
 
+  const handleToggleFavorite = async (link: Link) => {
+    try {
+      const newFavoriteStatus = !link.favorite;
+      await api.links.toggleFavorite(link.id, newFavoriteStatus);
+      setLinks(links.map(l => (l.id === link.id ? { ...l, favorite: newFavoriteStatus } : l)));
+    } catch {
+      toast.error('Failed to update favorite status');
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -81,7 +137,9 @@ const Links: React.FC = () => {
           description: modalLink.description, 
           url: modalLink.url, 
           comments: modalLink.comments,
-          read: modalLink.read
+          read: modalLink.read,
+          tags: modalLink.tags,
+          favorite: modalLink.favorite
         });
         setLinks(links.map(l => (l.id === editingId ? updated : l)));
         toast.success('Link updated!');
@@ -90,7 +148,9 @@ const Links: React.FC = () => {
           description: modalLink.description, 
           url: modalLink.url, 
           comments: modalLink.comments,
-          read: modalLink.read
+          read: modalLink.read,
+          tags: modalLink.tags,
+          favorite: modalLink.favorite
         });
         setLinks([...links, created]);
         toast.success('Link created!');

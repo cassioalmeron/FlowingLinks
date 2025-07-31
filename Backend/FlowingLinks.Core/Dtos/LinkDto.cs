@@ -6,5 +6,6 @@ public class LinkDto : DtoBase
     public string Url { get; set; }
     public string? Comments { get; set; }
     public bool Read { get; set; } = false;
-    public List<int> LabelIds { get; set; } = new ();
+    public bool Favorite { get; set; } = false;
+    public List<int> Tags { get; set; } = new ();
 }

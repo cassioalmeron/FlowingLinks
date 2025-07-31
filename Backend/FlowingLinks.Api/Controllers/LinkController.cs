@@ -23,12 +23,12 @@ public class LinkController : AuthorizeController
     /// </summary>
     /// <returns>List of all links for the current user</returns>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Link>>> GetAll()
+    public async Task<ActionResult<IEnumerable<LinkDto>>> GetAll()
     {
         try
         {
             var currentUserId = GetCurrentUserId();
-            var links = await _linkService.GetAll(currentUserId);
+            var links = await _linkService.GetByUserId(currentUserId);
             return Ok(links);
         }
         catch (UnauthorizedAccessException ex)
@@ -79,7 +79,7 @@ public class LinkController : AuthorizeController
     /// <param name="userId">User ID</param>
     /// <returns>List of links for the specified user</returns>
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<IEnumerable<Link>>> GetByUserId(int userId)
+    public async Task<ActionResult<IEnumerable<LinkDto>>> GetByUserId(int userId)
     {
         try
         {
@@ -218,6 +218,38 @@ public class LinkController : AuthorizeController
         {
             _logger.LogError(ex, "Error checking if link {LinkId} exists", id);
             return StatusCode(500, "An error occurred while checking link existence");
+        }
+    }
+
+    /// <summary>
+    /// Update the favorite status of a link
+    /// </summary>
+    /// <param name="id">Link ID</param>
+    /// <param name="favorite">Favorite status to set</param>
+    /// <returns>Updated link if successful, NotFound if link not found</returns>
+    [HttpPatch("{id}/favorite")]
+    public async Task<ActionResult> UpdateFavorite(int id, [FromBody] bool favorite)
+
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var updated = await _linkService.UpdateFavorite(id, currentUserId, favorite);
+
+            if (!updated)
+                return NotFound($"Link with ID {id} not found");
+
+            return Ok();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized access attempt");
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating favorite status for link {LinkId}", id);
+            return StatusCode(500, "An error occurred while updating the favorite status");
         }
     }
 }

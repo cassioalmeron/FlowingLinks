@@ -4,4 +4,6 @@ export interface Link {
   url: string;
   read: boolean;
   comments?: string;
+  tags?: number[]; // Array of tag IDs
+  favorite?: boolean; // Whether the link is favorited
 }

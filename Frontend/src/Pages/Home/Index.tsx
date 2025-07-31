@@ -1,7 +1,6 @@
 import { session } from '../../session';
 
 const Index = () => {
-  debugger
   const user = session.getUser();
   
   return (
