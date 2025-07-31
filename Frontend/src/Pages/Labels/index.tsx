@@ -8,6 +8,8 @@ import Grid from '../../components/Grid';
 import DeleteButton from '../../components/DeleteButton';
 import type { GridColumn } from '../../components/Grid';
 import type { Label } from './types';
+import EditButton from '../../components/EditButton';
+import NewButton from '../../components/NewButton';
 
 const emptyLabel: Label = { id: 0, name: '' };
 
@@ -124,7 +126,7 @@ const Labels: React.FC = () => {
   return (
     <div>
       <div className="labels-header">
-        <button className="labels-new-btn" onClick={openNewModal}>New</button>
+        <NewButton onClick={openNewModal} />
         <h2 className="labels-title">Labels</h2>
         <div className="labels-header-actions"></div>
       </div>
@@ -133,7 +135,7 @@ const Labels: React.FC = () => {
         data={labels}
         renderActions={label => (
           <>
-            <button className="labels-action-btn edit" onClick={() => openEditModal(label)}>Edit</button>
+            <EditButton onClick={() => openEditModal(label)} />
             <DeleteButton
               onConfirm={() => handleDelete(label.id)}
               loading={deleteLoading === label.id}

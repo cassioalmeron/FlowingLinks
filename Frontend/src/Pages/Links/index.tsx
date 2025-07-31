@@ -6,6 +6,8 @@ import './Styles.css';
 import LinkModal from './LinkModal';
 import Grid from '../../components/Grid';
 import DeleteButton from '../../components/DeleteButton';
+import EditButton from '../../components/EditButton';
+import NewButton from '../../components/NewButton';
 import type { GridColumn } from '../../components/Grid';
 import type { Link } from './types';
 
@@ -181,7 +183,7 @@ const Links: React.FC = () => {
   return (
     <div>
       <div className="page-header">
-        <button className="page-new-btn" onClick={openNewModal}>New</button>
+        <NewButton onClick={openNewModal} />
         <h2 className="page-title">Links</h2>
         <div className="page-header-actions"></div>
       </div>
@@ -190,7 +192,7 @@ const Links: React.FC = () => {
         data={links}
         renderActions={link => (
           <>
-            <button className="action-btn edit" onClick={() => openEditModal(link)}>Edit</button>
+            <EditButton onClick={() => openEditModal(link)} />
             <DeleteButton
               onConfirm={() => handleDelete(link.id)}
               loading={deleteLoading === link.id}
