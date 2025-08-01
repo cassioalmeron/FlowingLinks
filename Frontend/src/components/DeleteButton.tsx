@@ -7,7 +7,7 @@ interface DeleteButtonProps {
   confirmMessage?: React.ReactNode;
 }
 
-const DeleteButton: React.FC<DeleteButtonProps> = ({ onConfirm, loading = false, children = 'Delete', confirmMessage = 'Are you sure you want to delete this item?' }) => {
+const DeleteButton: React.FC<DeleteButtonProps> = ({ onConfirm, loading = false, confirmMessage = 'Are you sure you want to delete this item?' }) => {
   const [open, setOpen] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {

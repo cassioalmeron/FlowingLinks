@@ -37,17 +37,11 @@ namespace FlowingLinks.Api.Controllers
 
                 var user = await _loginService.Execute(request.Username, request.Password);
 
-                var token = _jwtService.GenerateToken(
+                var response = _jwtService.GenerateToken(
                     userId: user.Id.ToString(),
-                    username: user.Username
+                    username: user.Username,
+                    name: user.Name
                 );
-
-                var response = new LoginResponseDto
-                {
-                    Name = user.Name,
-                    IsAdmin = user.Id == 1,
-                    Token = token
-                };
 
                 _logger.LogInformation("User {Username} authenticated successfully", request.Username);
 

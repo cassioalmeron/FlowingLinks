@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using FlowingLinks.Api.DTOs;
 using FlowingLinks.Core;
+using FlowingLinks.Core.Models;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FlowingLinks.Api.Services;
@@ -15,8 +17,7 @@ public class JwtService
         _jwtSettings = jwtSettings;
     }
 
-    //public string GenerateToken(string userId, string email, string role)
-    public string GenerateToken(string userId, string username)
+    public LoginResponseDto GenerateToken(string userId, string username, string name)
     {
         if (_jwtSettings.Key.Length < 32)
             throw new FlowingLinksException("The JWT Key must have at least 32 characters.");
@@ -33,14 +34,26 @@ public class JwtService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        var expires = DateTime.Now.AddMinutes(_jwtSettings.ExpiryInMinutes);
+
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             claims: claims,
-            expires: DateTime.Now.AddMinutes(_jwtSettings.ExpiryInMinutes),
+            expires: expires,
             signingCredentials: credentials
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var generatedToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+        var response = new LoginResponseDto
+        {
+            Name = name,
+            IsAdmin = userId == "1",
+            Token = generatedToken,
+            Expires = expires
+        };
+
+        return response;
     }
 }

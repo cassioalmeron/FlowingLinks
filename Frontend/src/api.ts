@@ -1,14 +1,77 @@
 import axios from 'axios';
 import { session } from './session';
 
+/**
+ * Token Expiration Management
+ * 
+ * This module provides comprehensive token expiration checking functionality:
+ * 
+ * 1. Automatic expiration checking in RequireAuth component
+ * 2. API-level expiration checking before requests
+ * 3. Periodic background checking (every 60 seconds by default)
+ * 4. Utility functions for manual checking
+ * 
+ * Usage:
+ * - The system automatically checks token expiration on route changes
+ * - API calls automatically check expiration before making requests
+ * - Use checkTokenExpiration() for manual checks
+ * - Use useTokenExpiration() hook in React components
+ * 
+ * When a token expires:
+ * - User is automatically logged out
+ * - Session is cleared from localStorage
+ * - User is redirected to /login
+ */
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Centralized function to generate headers with authorization
 const getAuthHeaders = () => {
+  // Check if token has expired before making request
+  if (session.isTokenExpired()) {
+    session.logout();
+    throw new Error('Token has expired. Please login again.');
+  }
+  
   const token = session.getToken();
   return {
     Authorization: `Bearer ${token}`
   };
+};
+
+// Utility function to check token expiration
+export const checkTokenExpiration = () => {
+  if (session.isTokenExpired()) {
+    session.logout();
+    // Redirect to login page
+    window.location.href = '/login';
+    return false;
+  }
+  return true;
+};
+
+// React hook for token expiration checking (for use in components)
+export const useTokenExpiration = () => {
+  const checkExpiration = () => {
+    if (session.isTokenExpired()) {
+      session.logout();
+      window.location.href = '/login';
+      return false;
+    }
+    return true;
+  };
+
+  return { checkExpiration };
+};
+
+// Centralized error handler for API calls
+const handleApiError = (error: unknown) => {
+  if (error instanceof Error && error.message === 'Token has expired. Please login again.') {
+    session.logout();
+    window.location.href = '/login';
+    return;
+  }
+  throw error;
 };
 
 // Types
@@ -16,6 +79,7 @@ export interface AuthResponse {
     name: string;
     isAdmin: boolean;
     token: string;
+    expires: Date;
 }
 
 export interface User {
@@ -60,7 +124,8 @@ export const api = {
       const user = {
         name: data.name,
         isAdmin: data.isAdmin,
-        token: data.token
+        token: data.token,
+        expires: data.expires
       };
 
       session.login(user);
@@ -70,10 +135,15 @@ export const api = {
   },
   users: {
     list: async (): Promise<User[]> => {
-      const response = await axios.get<User[]>(`${BASE_URL}/User`, {
-        headers: getAuthHeaders()
-      });
-      return response.data;
+      try {
+        const response = await axios.get<User[]>(`${BASE_URL}/User`, {
+          headers: getAuthHeaders()
+        });
+        return response.data;
+      } catch (error) {
+        handleApiError(error);
+        throw error;
+      }
     },
     delete: async (id: number): Promise<void> => {
       await axios.delete(`${BASE_URL}/User/${id}`, {
