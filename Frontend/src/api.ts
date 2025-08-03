@@ -245,6 +245,19 @@ export const api = {
         }
       });
     },
+    search: async (filters: {
+      description?: string;
+      labelIds?: number[];
+      favorite?: number;
+    }): Promise<Link[]> => {
+      const response = await axios.post<Link[]>(`${BASE_URL}/Link/search`, filters, {
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    },
   },
   profile: {
     getProfile: async (): Promise<{ name: string; username: string }> => {

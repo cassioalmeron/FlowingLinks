@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using FlowingLinks.Api.DTOs;
 using FlowingLinks.Core;
-using FlowingLinks.Core.Models;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FlowingLinks.Api.Services;
@@ -12,10 +11,8 @@ public class JwtService
 {
     private readonly JwtSettings _jwtSettings;
 
-    public JwtService(JwtSettings jwtSettings)
-    {
+    public JwtService(JwtSettings jwtSettings) => 
         _jwtSettings = jwtSettings;
-    }
 
     public LoginResponseDto GenerateToken(string userId, string username, string name)
     {

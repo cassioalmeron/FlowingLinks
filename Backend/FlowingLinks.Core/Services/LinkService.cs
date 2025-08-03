@@ -1,6 +1,7 @@
 using FlowingLinks.Core.Dtos;
 using FlowingLinks.Core.Extensions;
 using FlowingLinks.Core.Models;
+using FlowingLinks.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlowingLinks.Core.Services
@@ -9,10 +10,8 @@ namespace FlowingLinks.Core.Services
     {
         private readonly FlowingLinksDbContext _dbContext;
 
-        public LinkService(FlowingLinksDbContext dbContext)
-        {
+        public LinkService(FlowingLinksDbContext dbContext) =>
             _dbContext = dbContext;
-        }
 
         public async Task<Link?> GetById(int id, int userId)
         {
@@ -20,7 +19,8 @@ namespace FlowingLinks.Core.Services
                 .Include(l => l.User)
                 .Include(l => l.LinkLabels)
                     .ThenInclude(ll => ll.Label)
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
+                .FilterByUser(userId)
+                .FirstOrDefaultAsync(l => l.Id == id);
         }
 
         public async Task<IEnumerable<LinkDto>> GetByUserId(int userId)
@@ -29,7 +29,7 @@ namespace FlowingLinks.Core.Services
                 .Include(l => l.User)
                 .Include(l => l.LinkLabels)
                 .ThenInclude(ll => ll.Label)
-                .Where(l => l.UserId == userId)
+                .FilterByUser(userId)
                 .ToListAsync();
             return link.Select(x =>
             {
@@ -75,7 +75,8 @@ namespace FlowingLinks.Core.Services
         public async Task<bool> Delete(int id, int userId)
         {
             var link = await _dbContext.Set<Link>()
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
+                .FilterByUser(userId)
+                .FirstOrDefaultAsync(l => l.Id == id);
             if (link == null)
                 return false;
             
@@ -90,10 +91,10 @@ namespace FlowingLinks.Core.Services
             return true;
         }
 
-        public async Task<bool> LinkExists(int id, int userId)
-        {
-            return await _dbContext.Set<Link>().AnyAsync(l => l.Id == id && l.UserId == userId);
-        }
+        public async Task<bool> LinkExists(int id, int userId) =>
+            await _dbContext.Set<Link>()
+                .FilterByUser(userId)
+                .AnyAsync();
 
         public async Task<bool> UpdateFavorite(int id, int userId, bool favorite)
         {
@@ -106,6 +107,47 @@ namespace FlowingLinks.Core.Services
             link.Favorite = favorite;
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<LinkDto>> GetByUserIdWithFilters(int userId, LinkFilterDto filter)
+        {
+            var query = _dbContext.Set<Link>()
+                .Include(l => l.User)
+                .Include(l => l.LinkLabels)
+                .ThenInclude(ll => ll.Label)
+                .FilterByUser(userId);
+
+            // Apply description filter
+            if (!string.IsNullOrWhiteSpace(filter.Description))
+                query = query.Where(l => l.Description.Contains(filter.Description));
+
+            // Apply favorite filter
+            switch (filter.Favorite)
+            {
+                case FavoriteFilterOption.FavoritesOnly:
+                    query = query.Where(l => l.Favorite);
+                    break;
+                case FavoriteFilterOption.NonFavoritesOnly:
+                    query = query.Where(l => !l.Favorite);
+                    break;
+                case FavoriteFilterOption.All:
+                default:
+                    // No filter applied
+                    break;
+            }
+
+            // Apply labels filter
+            if (filter.LabelIds != null && filter.LabelIds.Any())
+                query = query.Where(l => l.LinkLabels.Any(ll => filter.LabelIds.Contains(ll.LabelId)));
+
+            var links = await query.ToListAsync();
+            
+            return links.Select(x =>
+            {
+                var dto = x.CopyTo<LinkDto>();
+                dto.Tags.AddRange(x.LinkLabels.Select(l => l.LabelId));
+                return dto;
+            });
         }
 
         private async Task AddLinkLabels(int linkId, List<int> labelIds)

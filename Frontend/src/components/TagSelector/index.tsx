@@ -11,9 +11,10 @@ interface TagSelectorProps {
   selectedTags: number[];
   onTagsChange: (tagIds: number[]) => void;
   disabled?: boolean;
+  hideLabel?: boolean;
 }
 
-const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, disabled = false }) => {
+const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, disabled = false, hideLabel = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,13 +65,11 @@ const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, d
   if (loading) {
     return (
       <div className="tag-selector">
-        <label>
-          Tags:
-          <div className="tag-selector-input">
-            <span className="tag-selector-display">Loading tags...</span>
-            <span className="tag-selector-arrow">▼</span>
-          </div>
-        </label>
+        {!hideLabel && <label>Tags:</label>}
+        <div className="tag-selector-input">
+          <span className="tag-selector-display">Loading tags...</span>
+          <span className="tag-selector-arrow">▼</span>
+        </div>
       </div>
     );
   }
@@ -78,28 +77,43 @@ const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, d
   if (error) {
     return (
       <div className="tag-selector">
-        <label>
-          Tags:
-          <div className="tag-selector-input">
-            <span className="tag-selector-display">Error loading tags</span>
-            <span className="tag-selector-arrow">▼</span>
-          </div>
-        </label>
+        {!hideLabel && <label>Tags:</label>}
+        <div className="tag-selector-input">
+          <span className="tag-selector-display">Error loading tags</span>
+          <span className="tag-selector-arrow">▼</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="tag-selector">
-      <label>
-        Tags:
-        <div className="tag-selector-input" onClick={() => !disabled && setIsOpen(!isOpen)}>
-          <span className="tag-selector-display">
-            {selectedTags.length > 0 ? getSelectedTagNames() : 'Select tags...'}
-          </span>
-          <span className="tag-selector-arrow">▼</span>
-        </div>
-      </label>
+      {!hideLabel && <label>Tags:</label>}
+             <div className="tag-selector-input" onClick={() => !disabled && setIsOpen(!isOpen)}>
+         <div className="tag-selector-display">
+           {selectedTags.length > 0 ? (
+             <div className="inline-tags">
+               {tags
+                 .filter(tag => selectedTags.includes(tag.id))
+                 .map(tag => (
+                   <span
+                     key={tag.id}
+                     className="inline-tag"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       !disabled && toggleTag(tag.id);
+                     }}
+                   >
+                     {tag.name} ×
+                   </span>
+                 ))}
+             </div>
+           ) : (
+             'Select tags...'
+           )}
+         </div>
+         <span className="tag-selector-arrow">▼</span>
+       </div>
       
       {isOpen && (
         <div className="tag-selector-dropdown">
@@ -118,21 +132,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, d
         </div>
       )}
       
-      {selectedTags.length > 0 && (
-        <div className="selected-tags">
-          {tags
-            .filter(tag => selectedTags.includes(tag.id))
-            .map(tag => (
-              <span
-                key={tag.id}
-                className="selected-tag"
-                onClick={() => !disabled && toggleTag(tag.id)}
-              >
-                {tag.name} ×
-              </span>
-            ))}
-        </div>
-      )}
+      
     </div>
   );
 };

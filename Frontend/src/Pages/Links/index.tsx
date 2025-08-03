@@ -8,6 +8,7 @@ import Grid from '../../components/Grid';
 import DeleteButton from '../../components/DeleteButton';
 import EditButton from '../../components/EditButton';
 import NewButton from '../../components/NewButton';
+import TagSelector from '../../components/TagSelector';
 import type { GridColumn } from '../../components/Grid';
 import type { Link } from './types';
 
@@ -27,6 +28,11 @@ const Links: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  
+  // Filter states
+  const [descriptionFilter, setDescriptionFilter] = useState('');
+  const [selectedTagsFilter, setSelectedTagsFilter] = useState<number[]>([]);
+  const [favoritesFilter, setFavoritesFilter] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,7 +55,7 @@ const Links: React.FC = () => {
   const columns: GridColumn<Link>[] = [
     { header: 'Id', accessor: 'id' },
     { header: 'Description', accessor: 'description' },
-    { header: 'Link', accessor: 'url' },
+    //{ header: 'Link', accessor: 'url' },
     
     { header: 'Comments', accessor: 'comments' },
     { 
@@ -95,7 +101,7 @@ const Links: React.FC = () => {
         <button 
           className="link-open-btn"
           onClick={() => window.open(url as string, '_blank')}
-          title="Open link in new tab"
+          title={url as string}
         >
           🔗
         </button>
@@ -178,6 +184,55 @@ const Links: React.FC = () => {
     }
   };
 
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+      
+      // Convert favorites filter to API format
+      let favoriteValue: number | undefined;
+      if (favoritesFilter === true) {
+        favoriteValue = 1; // Favorites only
+      } else if (favoritesFilter === false) {
+        favoriteValue = 2; // Non-favorites only
+      } else {
+        favoriteValue = 0; // All
+      }
+      
+      const filters = {
+        description: descriptionFilter || undefined,
+        labelIds: selectedTagsFilter.length > 0 ? selectedTagsFilter : undefined,
+        favorite: favoriteValue
+      };
+      
+      const searchResults = await api.links.search(filters);
+      setLinks(searchResults);
+      
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Failed to search links');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearFilters = async () => {
+    setDescriptionFilter('');
+    setSelectedTagsFilter([]);
+    setFavoritesFilter(null);
+    
+    // Reload all links when filters are cleared
+    try {
+      setLoading(true);
+      const linksData = await api.links.list();
+      setLinks(linksData);
+    } catch (error) {
+      console.error('Error loading links:', error);
+      toast.error('Failed to load links');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) return <div>Loading links...</div>;
 
   return (
@@ -186,7 +241,56 @@ const Links: React.FC = () => {
         <NewButton onClick={openNewModal} />
         <h2 className="page-title">Links</h2>
         <div className="page-header-actions"></div>
-      </div>
+              </div>
+        
+        {/* Filter Section */}
+        <div className="filters-section">
+         <div className="filters-row">
+           <div className="filter-group">
+             <label htmlFor="description-filter">Description:</label>
+             <input
+               id="description-filter"
+               type="text"
+               value={descriptionFilter}
+               onChange={(e) => setDescriptionFilter(e.target.value)}
+               placeholder="Search in description..."
+               className="filter-input"
+             />
+           </div>
+           
+           <div className="filter-group">
+             <label>Labels:</label>
+             <TagSelector
+               selectedTags={selectedTagsFilter}
+               onTagsChange={setSelectedTagsFilter}
+               hideLabel={true}
+             />
+           </div>
+           
+           <div className="filter-group">
+             <label>Favorites:</label>
+             <select
+               value={favoritesFilter === null ? '' : favoritesFilter.toString()}
+               onChange={(e) => setFavoritesFilter(e.target.value === '' ? null : e.target.value === 'true')}
+               className="filter-select"
+             >
+               <option value="">All</option>
+               <option value="true">Favorites only</option>
+               <option value="false">Non-favorites only</option>
+             </select>
+           </div>
+           
+           <div className="filters-actions">
+             <button onClick={handleSearch} className="search-btn">
+               🔍 Search
+             </button>
+             <button onClick={clearFilters} className="clear-btn">
+               Clear Filters
+             </button>
+           </div>
+         </div>
+       </div>
+      
       <Grid
         columns={columns}
         data={links}

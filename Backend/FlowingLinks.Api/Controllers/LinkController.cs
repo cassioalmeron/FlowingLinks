@@ -44,6 +44,32 @@ public class LinkController : AuthorizeController
     }
 
     /// <summary>
+    /// Get filtered links for the current user
+    /// </summary>
+    /// <param name="filter">Filter criteria</param>
+    /// <returns>List of filtered links for the current user</returns>
+    [HttpPost("search")]
+    public async Task<ActionResult<IEnumerable<LinkDto>>> Search([FromBody] LinkFilterDto filter)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var links = await _linkService.GetByUserIdWithFilters(currentUserId, filter);
+            return Ok(links);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized access attempt");
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching links for user");
+            return StatusCode(500, "An error occurred while searching links");
+        }
+    }
+
+    /// <summary>
     /// Get link by ID for the current user
     /// </summary>
     /// <param name="id">Link ID</param>
