@@ -55,13 +55,6 @@ const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, d
     onTagsChange(newSelectedTags);
   };
 
-  const getSelectedTagNames = () => {
-    return tags
-      .filter(tag => selectedTags.includes(tag.id))
-      .map(tag => tag.name)
-      .join(', ');
-  };
-
   if (loading) {
     return (
       <div className="tag-selector">
@@ -101,7 +94,9 @@ const TagSelector: React.FC<TagSelectorProps> = ({ selectedTags, onTagsChange, d
                      className="inline-tag"
                      onClick={(e) => {
                        e.stopPropagation();
-                       !disabled && toggleTag(tag.id);
+                       if (!disabled) {
+                         toggleTag(tag.id);
+                       }
                      }}
                    >
                      {tag.name} ×
