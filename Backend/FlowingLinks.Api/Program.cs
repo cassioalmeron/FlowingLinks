@@ -114,6 +114,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Add custom CORS headers middleware (after MapControllers)
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+    await next();
+});
+
 // Ensure database and admin user exists
 using (var scope = app.Services.CreateScope())
 {
