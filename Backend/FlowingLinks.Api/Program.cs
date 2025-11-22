@@ -101,6 +101,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Add security headers middleware
+app.UseSecurityHeaders();
+
 // Add request logging middleware (alternative to base controller approach)
 app.UseRequestLogging();
 
