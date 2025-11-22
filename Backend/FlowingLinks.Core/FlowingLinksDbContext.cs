@@ -80,16 +80,17 @@ public class FlowingLinksDbContext : DbContext
     }
 
     /// <summary>
-    /// Ensures that the database exists and the admin user is created (synchronous version)
+    /// Ensures that the database is migrated and the admin user is created (synchronous version)
+    /// This is called automatically on application startup to apply any pending migrations
     /// </summary>
     public void EnsureDatabaseAndAdminUser()
     {
-        // Ensure database is created
-        Database.EnsureCreated();
-        
+        // Apply all pending migrations
+        Database.Migrate();
+
         // Check if admin user exists
         var adminUser = Users.Find(1);
-        
+
         if (adminUser == null)
         {
             adminUser = new User

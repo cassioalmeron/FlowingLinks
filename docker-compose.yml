@@ -1,0 +1,57 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+    container_name: flowinglinks-backend
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=http://+:5000
+      - Database__Provider=${DB_PROVIDER:-SQLite}
+      - Database__SqliteDatabasePath=${DB_PATH:-/app/data/FlowingLinks.db}
+      - Database__PostgresHost=${DB_HOST:-}
+      - Database__PostgresPort=${DB_PORT:-5432}
+      - Database__PostgresDatabase=${DB_NAME:-}
+      - Database__PostgresUsername=${DB_USER:-}
+      - Database__PostgresPassword=${DB_PASSWORD:-}
+      - Jwt__Key=${JWT_KEY:-your-secret-key-change-this-in-production}
+      - Jwt__Issuer=${JWT_ISSUER:-FlowingLinks}
+      - Jwt__Audience=${JWT_AUDIENCE:-FlowingLinks}
+      - Jwt__ExpiryInMinutes=${JWT_EXPIRY_MINUTES:-60}
+    volumes:
+      - ./Backend/data:/app/data
+    networks:
+      - flowinglinks-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/swagger"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://backend:5001}
+        - VITE_APP_NAME=Flowing Links
+    container_name: flowinglinks-frontend
+    ports:
+      - "${FRONTEND_PORT:-81}:80"
+    depends_on:
+      - backend
+    stdin_open: ${STDIN_OPEN:-false}
+    tty: ${TTY:-false}
+    networks:
+      - flowinglinks-network
+    restart: unless-stopped
+
+networks:
+  flowinglinks-network:
+    driver: bridge
+
+volumes:
+  backend-data:
+    driver: local

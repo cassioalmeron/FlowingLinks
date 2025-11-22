@@ -1,0 +1,64 @@
+# Environment Variables - NEVER COMMIT
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+Backend/data/
+
+# Build Artifacts
+Backend/bin/
+Backend/obj/
+Frontend/dist/
+Frontend/build/
+
+# Node Modules
+Frontend/node_modules/
+node_modules/
+
+# Package Manager
+npm-debug.log
+npm-debug.log.*
+yarn-error.log
+*.tgz
+
+# IDE & Editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.iml
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Runtime
+.dotnet/
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+*.coverage
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Development
+.env.development
+local.settings.json
+
+# Docker
+docker-compose.override.yml
+
+#Claude
+.claude/
