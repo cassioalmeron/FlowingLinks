@@ -101,14 +101,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Add security headers middleware
-app.UseSecurityHeaders();
+// Use the CORS policy (must be before authentication)
+app.UseCors("AllowAll");
 
 // Add request logging middleware (alternative to base controller approach)
 app.UseRequestLogging();
-
-// Use the CORS policy
-app.UseCors("AllowAll");
 
 // Add authentication middleware
 app.UseAuthentication();
