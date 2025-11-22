@@ -46,6 +46,7 @@ docker-compose ps
 Access the application:
 - **Frontend**: http://localhost:81 (or your configured `FRONTEND_PORT`)
 - **Backend**: http://localhost:5000/swagger (or your configured `BACKEND_PORT`)
+- **Backend Health Check**: http://localhost:5000/health (or your configured `BACKEND_PORT`)
 
 ## Configuration
 
@@ -325,6 +326,98 @@ FRONTEND_PORT=8080
 
 # Environment
 ASPNETCORE_ENVIRONMENT=Production
+```
+
+## Health Check Endpoints
+
+The backend provides several health check endpoints for monitoring and container orchestration:
+
+### Basic Health Check
+**Endpoint**: `GET /health`
+**Purpose**: Quick health status check
+**Response**:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-11-22T10:30:00.000Z"
+}
+```
+
+### Detailed Health Check
+**Endpoint**: `GET /health/detailed`
+**Purpose**: Comprehensive health check including database connectivity
+**Success Response (200 OK)**:
+```json
+{
+  "status": "healthy",
+  "database": "connected",
+  "timestamp": "2025-11-22T10:30:00.000Z"
+}
+```
+**Failure Response (503 Service Unavailable)**:
+```json
+{
+  "status": "unhealthy",
+  "database": "disconnected",
+  "timestamp": "2025-11-22T10:30:00.000Z"
+}
+```
+
+### Liveness Probe (Kubernetes)
+**Endpoint**: `GET /health/live`
+**Purpose**: Indicates if the service is running (for Kubernetes liveness probes)
+**Response**: 200 OK (no body)
+
+### Readiness Probe (Kubernetes)
+**Endpoint**: `GET /health/ready`
+**Purpose**: Indicates if the service is ready to accept traffic (for Kubernetes readiness probes)
+**Response**:
+- 200 OK if ready
+- 503 Service Unavailable if not ready
+
+### Docker Health Check Configuration
+
+Docker Compose is configured to use the basic health check:
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+```
+
+### Kubernetes Configuration Example
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 5000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 5000
+  initialDelaySeconds: 15
+  periodSeconds: 5
+```
+
+### Monitoring Health
+
+Check container health:
+```bash
+# View health status
+docker-compose ps
+
+# View detailed logs
+docker-compose logs backend
+
+# Test health endpoint manually
+curl http://localhost:5000/health
+curl http://localhost:5000/health/detailed
 ```
 
 ## Troubleshooting
