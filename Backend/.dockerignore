@@ -5,10 +5,8 @@
 **/bin
 **/obj
 **/.DS_Store
-**/node_modules
 **/*.user
 **/*.suo
-**/*.sln.iml
 .dockerignore
 Dockerfile
 .env

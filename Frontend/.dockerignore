@@ -3,6 +3,7 @@
 **/node_modules
 **/npm-debug.log
 **/dist
+**/build
 **/.DS_Store
 **/.env
 **/.env.*.local
@@ -13,3 +14,4 @@ Dockerfile
 docker-compose.yml
 .vscode
 .idea
+README.md
