@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Home from './Pages/Home/Index';
@@ -29,15 +29,15 @@ const AppLayout = () => {
       {/* Sidebar Navigation */}
       <nav className="sidebar">
         <div className="sidebar-links">
-          <Link to="/" className="sidebar-link">🏠 Home</Link>
-          {!user?.isAdmin && 
+          <NavLink to="/" end className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>🏠 Home</NavLink>
+          {!user?.isAdmin &&
             <>
-              <Link to="/links" className="sidebar-link">🔗 Links</Link>
-              <Link to="/labels" className="sidebar-link">🏷️ Labels</Link>
+              <NavLink to="/links" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>🔗 Links</NavLink>
+              <NavLink to="/labels" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>🏷️ Labels</NavLink>
             </>
           }
-          {user?.isAdmin && <Link to="/users" className="sidebar-link">👥 Users</Link>}
-          <Link to="/profile" className="sidebar-link">👤 Profile</Link>
+          {user?.isAdmin && <NavLink to="/users" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>👥 Users</NavLink>}
+          <NavLink to="/profile" className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>👤 Profile</NavLink>
         </div>
         <button className="sidebar-link logout-btn" onClick={handleLogout} style={{ marginTop: 'auto', width: '100%' }}>
           🚪 Logout

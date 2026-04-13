@@ -1,33 +1,53 @@
 /* LinkModal specific styles */
 .common-modal textarea {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: inherit;
+  padding: 9px 13px;
+  background: var(--glass-bg-light);
+  border: var(--border-glass-light);
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
+  font-size: 14px;
+  color: var(--text-primary);
   resize: vertical;
   min-height: 80px;
+  transition: var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.common-modal textarea::placeholder {
+  color: var(--text-muted);
 }
 
 .common-modal textarea:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  background: var(--glass-bg-medium);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: var(--shadow-glass-input-focus);
 }
 
 .common-modal input[type="url"] {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: inherit;
+  padding: 9px 13px;
+  background: var(--glass-bg-light);
+  border: var(--border-glass-light);
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
+  font-size: 14px;
+  color: var(--text-primary);
+  box-sizing: border-box;
+  transition: var(--transition-fast);
+}
+
+.common-modal input[type="url"]::placeholder {
+  color: var(--text-muted);
 }
 
 .common-modal input[type="url"]:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-} 
+  background: var(--glass-bg-medium);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: var(--shadow-glass-input-focus);
+}
 
 .common-modal .checkbox-label {
   display: flex;
@@ -35,6 +55,8 @@
   gap: 8px;
   cursor: pointer;
   flex-direction: row;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .common-modal .checkbox-label input[type="checkbox"] {
@@ -42,9 +64,10 @@
   margin: 0;
   cursor: pointer;
   order: -1;
+  accent-color: var(--color-primary);
 }
 
 .common-modal .checkbox-label input[type="checkbox"]:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-} 
+  box-shadow: var(--shadow-glass-input-focus);
+}
